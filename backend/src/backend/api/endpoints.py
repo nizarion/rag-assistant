@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from backend.core.assistant import retrieve_relevant_passages, get_embedding, vector_store
 from backend.core.logging_config import setup_logger
-from openai import AzureOpenAI
+from backend.core.azure_client import chat_client
 import os
 from dotenv import load_dotenv
 
@@ -11,12 +11,6 @@ load_dotenv()
 logger = setup_logger(__name__)
 
 router = APIRouter(prefix="/assistant")
-
-client = AzureOpenAI(
-    api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-    api_version="2024-02-01",
-    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-)
 
 class QueryRequest(BaseModel):
     query: str
@@ -33,7 +27,7 @@ async def query_assistant(request: QueryRequest):
     system_prompt += "\n".join(passages)
     logger.info(f"System prompt: {system_prompt}")
 
-    response = client.chat.completions.create(
+    response = chat_client.chat.completions.create(
         model=os.getenv("MODEL_DEPLOYMENT_NAME"),
         messages=[
             {"role": "system", "content": system_prompt},
@@ -45,6 +39,9 @@ async def query_assistant(request: QueryRequest):
 
 @router.post("/populate-knowledge")
 async def populate_data():
+    """Populate vector store with vitamin knowledge data."""
+    logger.info("Starting to populate vitamin knowledge data")
+    
     passages = [
         "Vitamin C is essential for the growth and repair of tissues in the body.",
         "Vitamin D is important for maintaining healthy bones and teeth. ",
@@ -76,13 +73,39 @@ async def populate_data():
         "Vitamin B9 is important for DNA synthesis and repair."
     ]
     
-    # Get embeddings for each passage
-    embeddings = [get_embedding(passage) for passage in passages]
-    
-    # Store passages and their embeddings
-    vector_store.store_passages(passages, embeddings)
-    
-    return {"status": "success", "message": "Joke passages have been stored in the vector database"}
+    try:
+        # Get embeddings for each passage in batches
+        logger.info(f"Generating embeddings for {len(passages)} passages")
+        embeddings = []
+        batch_size = 10
+        
+        for i in range(0, len(passages), batch_size):
+            batch = passages[i:i + batch_size]
+            batch_embeddings = [get_embedding(passage) for passage in batch]
+            
+            # Validate embeddings
+            if any(not embedding for embedding in batch_embeddings):
+                raise ValueError("Failed to generate valid embeddings for some passages")
+                
+            embeddings.extend(batch_embeddings)
+            logger.debug(f"Processed {i + len(batch)}/{len(passages)} passages")
+        
+        # Store passages and their embeddings
+        logger.info("Storing passages and embeddings in vector store")
+        vector_store.store_passages(passages, embeddings)
+        
+        logger.info("Successfully populated vitamin knowledge data")
+        return {
+            "status": "success", 
+            "message": "Vitamin knowledge has been stored in the vector database",
+            "count": len(passages)
+        }
+    except Exception as e:
+        logger.error(f"Error populating vitamin knowledge: {str(e)}")
+        return {
+            "status": "error", 
+            "message": f"Failed to store vitamin knowledge: {str(e)}"
+        }
 
 @router.post("/ping")
 async def ping():
