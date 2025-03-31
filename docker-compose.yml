@@ -1,0 +1,13 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/workspace/backend
+    environment:
+      - PYTHONUNBUFFERED=1
+    env_file:
+      - .env
