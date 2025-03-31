@@ -1,11 +1,12 @@
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct
 from qdrant_client.http.exceptions import UnexpectedResponse
-from typing import List, Any
+from typing import List
 from .logging_config import setup_logger
 import uuid
 
 logger = setup_logger(__name__)
+
 
 class VectorStore:
     VECTOR_SIZE = 1536  # OpenAI embedding size
@@ -20,7 +21,9 @@ class VectorStore:
         try:
             self.client.create_collection(
                 collection_name=self.collection_name,
-                vectors_config=VectorParams(size=self.VECTOR_SIZE, distance=Distance.COSINE),
+                vectors_config=VectorParams(
+                    size=self.VECTOR_SIZE, distance=Distance.COSINE
+                ),
             )
             logger.info(f"Created collection: {self.collection_name}")
         except UnexpectedResponse as e:
@@ -34,11 +37,13 @@ class VectorStore:
         """Validate vector dimensions"""
         return all(len(embedding) == self.VECTOR_SIZE for embedding in embeddings)
 
-    def store_passages(self, passages: List[str], embeddings: List[List[float]], batch_size: int = 100):
+    def store_passages(
+        self, passages: List[str], embeddings: List[List[float]], batch_size: int = 100
+    ):
         """Store passages with their embeddings"""
         if not passages or not embeddings:
             raise ValueError("Passages and embeddings cannot be empty")
-        
+
         if len(passages) != len(embeddings):
             raise ValueError("Number of passages must match number of embeddings")
 
@@ -48,28 +53,26 @@ class VectorStore:
         try:
             # Process in batches
             for i in range(0, len(passages), batch_size):
-                batch_passages = passages[i:i + batch_size]
-                batch_embeddings = embeddings[i:i + batch_size]
-                
+                batch_passages = passages[i : i + batch_size]
+                batch_embeddings = embeddings[i : i + batch_size]
+
                 points = [
                     PointStruct(
                         id=uuid.uuid4().int >> 64,  # Generate unique ID
                         vector=embedding,
-                        payload={"text": passage}
+                        payload={"text": passage},
                     )
                     for passage, embedding in zip(batch_passages, batch_embeddings)
                 ]
-                
+
                 self.client.upsert(
-                    collection_name=self.collection_name,
-                    wait=True,
-                    points=points
+                    collection_name=self.collection_name, wait=True, points=points
                 )
-                
+
                 logger.debug(f"Stored batch of {len(points)} passages")
-            
+
             logger.info(f"Successfully stored {len(passages)} passages")
-        
+
         except Exception as e:
             logger.error(f"Error storing passages: {str(e)}")
             raise
@@ -85,10 +88,10 @@ class VectorStore:
                 query_vector=query_embedding,
                 limit=limit,
             )
-            
+
             logger.debug(f"Found {len(results)} similar passages")
             return [hit.payload["text"] for hit in results]
-            
+
         except Exception as e:
             logger.error(f"Error searching passages: {str(e)}")
             raise
