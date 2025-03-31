@@ -1,9 +1,10 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from backend.api.endpoints import router
 
 app = FastAPI(title="RAG Virtual Assistant")
 
 app.include_router(router)
+
 
 @app.get("/")
 async def root():
