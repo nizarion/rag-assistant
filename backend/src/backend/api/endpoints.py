@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-from backend.core.assistant import retrieve_relevant_passages
+from backend.core.assistant import retrieve_relevant_passages, get_embedding, vector_store
 from openai import AzureOpenAI
 import os
 from dotenv import load_dotenv
@@ -19,10 +19,8 @@ client = AzureOpenAI(
     azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
 )
 
-
 class QueryRequest(BaseModel):
     query: str
-
 
 @router.post("/query")
 async def query_assistant(request: QueryRequest):
@@ -48,3 +46,26 @@ async def query_assistant(request: QueryRequest):
     )
 
     return {"response": response.choices[0].message.content}
+
+@router.post("/populate-jokes")
+async def populate_joke_data():
+    joke_passages = [
+        "Zeus, Poseidon, and Hades walk into a bar. Zeus orders a lightning bolt cocktail, Poseidon asks for a sea breeze, and Hades just wants a Death by Chocolate.",
+        "Why don't Greek gods use social media? Because they have too much drama in their lives already!",
+        "Hercules is known for his twelve labors and incredible strength. He's basically the original gym influencer.",
+        "Apollo is the god of music, poetry, and the sun. He's basically the original multi-tasking freelancer.",
+        "Athena is the goddess of wisdom and strategic warfare. She's like a CEO who also knows martial arts.",
+    ]
+    
+    # Get embeddings for each passage
+    embeddings = [get_embedding(passage) for passage in joke_passages]
+    
+    # Store passages and their embeddings
+    vector_store.store_passages(joke_passages, embeddings)
+    
+    return {"status": "success", "message": "Joke passages have been stored in the vector database"}
+
+@router.post("/ping")
+async def ping():
+    """Ping the assistant API to check if it's alive."""
+    return {"status": "success", "message": "Assistant API is alive."}

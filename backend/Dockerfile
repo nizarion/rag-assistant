@@ -14,7 +14,7 @@ COPY backend backend
 WORKDIR /workspace/backend
 
 # Install backend dependencies (project in workspace context)
-RUN uv pip install --system .
+RUN uv pip install --system -e .
 
 # Expose app port (FastAPI default)
 EXPOSE 8000
