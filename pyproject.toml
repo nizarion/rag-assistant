@@ -15,7 +15,7 @@ dev = [
 ]
 
 [tool.uv.workspace]
-members = ["backend"]
+members = ["backend", "frontend"]
 
 [tool.poe.tasks]
 fmt = "ruff format ${PWD}"

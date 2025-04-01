@@ -61,3 +61,20 @@ uv run poe all
 - `tests/` - Test files
 - `.env` - Environment variables
 - `docker-compose.yml` - Docker services configuration
+
+## Services
+
+- Backend (FastAPI): http://localhost:8000
+- Frontend (Chainlit): http://localhost:8001
+- Vector Store (Qdrant): http://localhost:6333
+
+## Running the Application
+
+1. Start all services:
+```bash
+docker compose up -d
+```
+
+2. Access the frontend at http://localhost:8001
+
+3. Access the API docs at http://localhost:8000/docs

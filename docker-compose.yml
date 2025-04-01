@@ -35,5 +35,26 @@ services:
       timeout: 10s
       retries: 3
 
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: rag-frontend
+    ports:
+      - "8001:8001"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - BACKEND_URL=http://backend:8000
+    volumes:
+      - ./frontend/src/frontend:/workspace/frontend/src/frontend
+    depends_on:
+      - backend
+    command: ["chainlit", "run", "src/frontend/app.py", "--port", "8001", "--host", "0.0.0.0"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 volumes:
   qdrant_storage:
