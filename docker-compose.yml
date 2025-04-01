@@ -49,7 +49,6 @@ services:
       - ./frontend/src/frontend:/workspace/frontend/src/frontend
     depends_on:
       - backend
-    command: ["chainlit", "run", "src/frontend/app.py", "--port", "8001", "--host", "0.0.0.0"]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/"]
       interval: 30s

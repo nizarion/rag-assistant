@@ -2,77 +2,51 @@ import os
 import chainlit as cl
 import httpx
 from typing import Dict
+from frontend.prompts import UIPrompts, ActionLabels
 
 BACKEND_URL = os.getenv("BACKEND_URL", "http://backend:8000")
+prompts = UIPrompts()
+actions = ActionLabels()
 
-async def query_backend(query: str) -> Dict:
-    """Send query to FastAPI backend and return response."""
+async def call_backend(endpoint: str, timeout: float = 10.0, **kwargs) -> Dict:
+    """Generic backend API call with error handling."""
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.post(
-                f"{BACKEND_URL}/assistant/query",
-                json={"query": query}
-            )
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            response = await client.post(f"{BACKEND_URL}/assistant/{endpoint}", **kwargs)
             response.raise_for_status()
             return response.json()
-    except httpx.TimeoutException:
-        raise ConnectionError("Backend service is not responding. Please try again later.")
-    except httpx.HTTPStatusError as e:
-        raise ConnectionError(f"Backend service error: {e.response.status_code}")
-    except httpx.RequestError:
-        raise ConnectionError("Cannot connect to backend service.")
-
-async def populate_knowledge() -> Dict:
-    """Populate the knowledge base from the backend."""
-    try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(f"{BACKEND_URL}/assistant/populate-knowledge")
-            response.raise_for_status()
-            return response.json()
-    except httpx.TimeoutException:
-        raise ConnectionError("Knowledge population timed out. This operation might take longer than expected.")
-    except httpx.HTTPStatusError as e:
-        raise ConnectionError(f"Failed to populate knowledge: {e.response.status_code}")
-    except httpx.RequestError:
-        raise ConnectionError("Cannot connect to backend service for knowledge population.")
+    except (httpx.TimeoutException, httpx.RequestError, httpx.HTTPStatusError) as e:
+        raise ConnectionError(f"Backend service error: {str(e)}")
 
 @cl.on_chat_start
 async def start_chat():
-    """Initialize the chat session."""
-    actions = [
-        cl.Action(
-            name="populate_knowledge",
-            label="Populate Knowledge Base",
-            description="Load or reload the vitamin knowledge base",
-            payload={}  # Added required payload field
-        )
-    ]
+    """Initialize chat session with knowledge base action."""
     await cl.Message(
-        content="Hello! I'm your RAG Assistant. How can I help you learn about vitamins today?",
-        actions=actions
+        content=prompts.welcome,
+        actions=[
+            cl.Action(
+                name="populate_knowledge",
+                label=actions.populate_kb_label,
+                description=actions.populate_kb_desc,
+                payload={}
+            )
+        ]
     ).send()
 
 @cl.action_callback("populate_knowledge")
 async def on_populate(action):
     """Handle knowledge population request."""
-    await cl.Message(content="🔄 Populating knowledge base... Please wait.").send()
     try:
-        response = await populate_knowledge()
-        await cl.Message(content="✅ Knowledge base successfully populated!").send()
-    except ConnectionError as e:
-        await cl.Message(content=f"❌ {str(e)}").send()
-    except Exception:
-        await cl.Message(content="❌ Failed to populate knowledge base.").send()
+        await call_backend("populate-knowledge", timeout=30.0)
+        await cl.Message(content=prompts.kb_populated).send()
+    except Exception as e:
+        await cl.Message(content=f"{prompts.error_prefix} {str(e)}").send()
 
 @cl.on_message
 async def main(message: cl.Message):
-    """Handle incoming chat messages."""
+    """Handle chat messages."""
     try:
-        response = await query_backend(message.content)
+        response = await call_backend("query", json={"query": message.content})
         await cl.Message(content=response["response"]).send()
-    except ConnectionError as e:
-        await cl.Message(content=f"🔌 Connection Error: {str(e)}").send()
-    except KeyError:
-        await cl.Message(content="⚠️ Invalid response format from backend service.").send()
-    except Exception:
-        await cl.Message(content="🚨 An unexpected error occurred. Please try again later.").send()
+    except Exception as e:
+        await cl.Message(content=f"{prompts.error_prefix} {str(e)}").send()

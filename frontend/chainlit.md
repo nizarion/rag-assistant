@@ -4,7 +4,7 @@ This is a RAG-based virtual assistant that uses Azure OpenAI and Qdrant for inte
 
 ## Features
 
-- Query a knowledge base about vitamins and supplements
+- Query a knowledge base 
 - Get accurate, context-aware responses
 - Natural conversation interface
 

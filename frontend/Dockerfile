@@ -21,4 +21,4 @@ RUN uv pip install --system -e .
 EXPOSE 8001
 
 # Run Chainlit server
-CMD ["uv", "run", "chainlit", "run", "app.py", "--port", "8001", "--host", "0.0.0.0"]
+CMD ["chainlit", "run", "src/frontend/app.py", "--port", "8001", "--host", "0.0.0.0"]
