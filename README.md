@@ -1,10 +1,27 @@
 # RAG Assistant
 
-A RAG-based virtual assistant using FastAPI, Azure OpenAI, and Qdrant.
+A robust RAG-based virtual assistant powered by FastAPI, Azure OpenAI, and Qdrant, designed for efficient document processing and intelligent responses.
+
+## Overview
+
+RAG Assistant combines modern technologies to provide an intelligent document processing and question-answering system. It leverages Retrieval-Augmented Generation (RAG) to deliver accurate, context-aware responses based on your documents.
+
+## Key Features
+
+- Real-time document processing and indexing
+- Intelligent question answering using RAG
+- Scalable vector storage with Qdrant
+- Modern web interface using Chainlit
+- RESTful API powered by FastAPI
+
+## Architecture
+
+- **Backend**: FastAPI service handling core logic
+- **Frontend**: Chainlit-based interactive UI
+- **Vector Store**: Qdrant for efficient embedding storage
+- **LLM Integration**: Azure OpenAI for text generation
 
 ## Development Tools
-
-This project uses several development tools to maintain code quality:
 
 ### Ruff (Code Formatting and Linting)
 Ruff is an extremely fast Python linter and formatter written in Rust.
@@ -43,38 +60,53 @@ Use Pytest when you want to:
 - Run all checks: `uv run poe all`
   This will run formatting, linting, type checking, and tests in sequence.
 
-## Getting Started
+## Local Development
 
-1. Install development dependencies:
+### Prerequisites
+
+- Python 3.10+
+- Docker and Docker Compose
+- Azure OpenAI API access
+
+### Environment Setup
+
+Create a `.env` file in the project root:
+
+```env
+AZURE_OPENAI_API_KEY=your_api_key
+AZURE_OPENAI_ENDPOINT=your_endpoint
+```
+
+### Installation
+
 ```bash
 uv pip install --dependency-group=dev -e .
 ```
 
-2. Run all checks:
-```bash
-uv run poe all
-```
-
-## Project Structure
-
-- `backend/` - FastAPI backend service
-- `tests/` - Test files
-- `.env` - Environment variables
-- `docker-compose.yml` - Docker services configuration
-
 ## Services
 
-- Backend (FastAPI): http://localhost:8000
-- Frontend (Chainlit): http://localhost:8001
-- Vector Store (Qdrant): http://localhost:6333
+Services are available at:
+- Backend API: http://localhost:8000 (API docs at /docs)
+- Frontend UI: http://localhost:8001
+- Qdrant Dashboard: http://localhost:6333
 
 ## Running the Application
 
-1. Start all services:
 ```bash
-docker compose up -d
+docker compose up -d     # Start all services
 ```
 
-2. Access the frontend at http://localhost:8001
+## Contributing
 
-3. Access the API docs at http://localhost:8000/docs
+We welcome contributions! Please ensure your code:
+- Passes all checks (`uv run poe all`)
+- Includes appropriate tests
+- Follows our code style guidelines
+
+## License
+
+MIT License - See LICENSE file for details
+
+## Support
+
+For issues and feature requests, please use the GitHub issue tracker.
