@@ -22,6 +22,6 @@ fmt = "ruff format ${PWD}"
 lint = "ruff check --fix ${PWD}"
 check = "basedpyright ${PWD}"
 test = "pytest ${PWD}"
-all = ["fmt", "lint", "check"]
+all = ["fmt", "lint"] # check test
 ci-fmt = "ruff format --check ${PWD}"
 ci-lint = "ruff check ${PWD}"
