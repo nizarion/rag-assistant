@@ -10,7 +10,7 @@ from backend.core.azure_client import chat_client
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+_ = load_dotenv()
 
 logger = setup_logger(__name__)
 
@@ -34,7 +34,7 @@ async def query_assistant(request: QueryRequest):
     logger.info(f"System prompt: {system_prompt}")
 
     response = chat_client.chat.completions.create(
-        model=os.getenv("MODEL_DEPLOYMENT_NAME"),
+        model=os.getenv("MODEL_DEPLOYMENT_NAME") or "changeme",
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": request.query},
@@ -83,7 +83,7 @@ async def populate_data():
     try:
         # Get embeddings for each passage in batches
         logger.info(f"Generating embeddings for {len(passages)} passages")
-        embeddings = []
+        embeddings: list[list[float]] = []
         batch_size = 10
 
         for i in range(0, len(passages), batch_size):

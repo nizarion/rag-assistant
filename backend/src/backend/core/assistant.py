@@ -10,7 +10,8 @@ vector_store = VectorStore()
 def get_embedding(text: str):
     logger.info(f"Generating embedding for text: {text[:50]}...")
     response = embeddings_client.embeddings.create(
-        model=os.getenv("MODEL_DEPLOYMENT_NAME_EMBEDDINGS"), input=text
+        model=os.getenv("MODEL_DEPLOYMENT_NAME_EMBEDDINGS") or "changeme",
+        input=text,
     )
     logger.debug("Embedding generated successfully")
     return response.data[0].embedding

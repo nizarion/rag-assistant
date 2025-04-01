@@ -15,5 +15,7 @@ def create_azure_client(endpoint: str) -> AzureOpenAI:
 
 
 # Create clients for different endpoints
-chat_client = create_azure_client(os.getenv("AZURE_OPENAI_ENDPOINT"))
-embeddings_client = create_azure_client(os.getenv("AZURE_OPENAI_ENDPOINT"))
+chat_client = create_azure_client(os.getenv("AZURE_OPENAI_ENDPOINT") or "changeme")
+embeddings_client = create_azure_client(
+    os.getenv("AZURE_OPENAI_ENDPOINT") or "changeme"
+)

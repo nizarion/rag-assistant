@@ -1,9 +1,8 @@
 import logging
 import sys
-from typing import Optional
 
 
-def setup_logger(name: Optional[str] = None) -> logging.Logger:
+def setup_logger(name: str | None = None) -> logging.Logger:
     """Configure and return a logger instance."""
     logger = logging.getLogger(name)
 
