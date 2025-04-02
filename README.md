@@ -1,6 +1,8 @@
 # RAG Assistant
 
 A robust RAG-based virtual assistant powered by FastAPI, Azure OpenAI, and Qdrant, designed for efficient document processing and intelligent responses.
+![Screenshot 2025-04-02 at 13 42 30](https://github.com/user-attachments/assets/617717ee-3b55-4e28-a999-34af857d31ff)
+
 
 ## Overview
 
